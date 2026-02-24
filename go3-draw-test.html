@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>go3-draw test</title>
+</head>
+<body>
+  <canvas id="go-board" width="600" height="540"
+    style="background:#cccc99; border:2px solid red;"></canvas>
+  <script type="module">
+    import { draw } from './go3-draw.js';
+    const canvas = document.getElementById('go-board');
+    draw(canvas);
+  </script>
+</body>
+</html>
