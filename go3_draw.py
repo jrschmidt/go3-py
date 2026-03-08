@@ -1,4 +1,5 @@
 import tkinter as tk
+from collections.abc import Iterator
 
 
 # Color constants
@@ -92,6 +93,11 @@ def is_valid_gameboard_point(point: Point) -> bool:
     start, end = ROW_BEGIN_END[b - 1]
     return start <= a <= end
 
+def gameboard_points() -> Iterator[Point]:
+    for b, (start, end) in enumerate(ROW_BEGIN_END, start=1):
+        for a in range(start, end + 1):
+            yield (a, b)
+
 def get_point(x: int, y: int) -> Point | None:
     b = (y - 28) // 44 + 1
     a = (x - 125 + 25 * b) // 50
@@ -184,6 +190,12 @@ if __name__ == "__main__":
 
 
     # Temporary testing code:
+
+    pts = list(gameboard_points())
+    assert len(pts) == 91        # standard Go3 hexagonal board has 91 points
+    assert (1, 1) in pts
+    assert (6, 11) in pts
+    assert (1, 11) not in pts    # row 11 starts at col 6
 
     draw_stone(canvas, (4, 4), RED)
     draw_stone(canvas, (9, 9), WHITE)
