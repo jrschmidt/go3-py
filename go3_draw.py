@@ -20,8 +20,10 @@ Point = tuple[int, int]
 
 STAR_POINTS: list[Point] = [ [3,3], [6,3], [3,6], [6,6], [9,6], [6,9], [9,9] ]
 
-ROW_START = [1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6]
-ROW_END   = [6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 11]
+ROW_BEGIN_END: list[tuple[int, int]] = [
+    (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11),
+    (2, 11), (3, 11), (4, 11), (5, 11), (6, 11),
+]
 
 W_E: list[tuple[Point, Point]] = [
     ((1, 1),  (6, 1)),
@@ -85,7 +87,10 @@ def get_y(ab: Point) -> int: return 6 + 44 * ab[1]
 
 def is_valid_gameboard_point(point: Point) -> bool:
     a, b = point
-    return 1 <= b <= 11 and ROW_START[b - 1] <= a <= ROW_END[b - 1]
+    if not 1 <= b <= 11:
+        return False
+    start, end = ROW_BEGIN_END[b - 1]
+    return start <= a <= end
 
 def get_point(x: int, y: int) -> Point | None:
     b = (y - 28) // 44 + 1
