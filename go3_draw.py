@@ -1,11 +1,27 @@
 import tkinter as tk
 
+# Color constants
+
+RED = "#cc3333"
+WHITE = "#f0f0f0"
+BLUE = "#5050cc"
+APP_COLOR = "#CCCC99"
+BOARD_COLOR = "#CC9933"
+LINE_COLOR = "#000000"
+BOARD_MARGIN_COLOR = "#000000"
+STONE_EDGE_COLOR = "#000000"
+
+
 # Board geometry constants
 
 Point = tuple[int, int]
 
-ROW_START = [1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6]
-ROW_END   = [6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 11]
+STAR_POINTS: list[Point] = [ [3,3], [6,3], [3,6], [6,6], [9,6], [6,9], [9,9] ]
+
+
+
+# ROW_START = [1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6]
+# ROW_END   = [6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 11]
 
 W_E: list[tuple[Point, Point]] = [
     ((1, 1),  (6, 1)),
@@ -58,31 +74,58 @@ def get_y(ab: Point) -> int: return 6 + 44 * ab[1]
 
 def draw_base_hex(canvas: tk.Canvas) -> None:
     canvas.create_polygon(157, 26, 443, 26, 576, 270, 443, 514, 157, 514, 25, 270,
-        fill="#cc9933", outline="#000000", width=5)
+        fill=BOARD_COLOR, outline=BOARD_MARGIN_COLOR, width=5)
 
 def draw_base_margin(canvas: tk.Canvas) -> None:
     canvas.create_polygon(163, 34, 437, 34, 567, 270, 437, 506, 163, 506, 33, 270,
-        fill="", outline="#000000", width=3)
+        fill="", outline=BOARD_MARGIN_COLOR, width=3)
 
 def draw_line(canvas: tk.Canvas, beg: Point, end: Point) -> None:
     canvas.create_line(get_x(beg), get_y(beg), get_x(end), get_y(end),
-        fill="#000000", width=3)
+        fill=LINE_COLOR, width=3)
 
 def draw_lines(canvas: tk.Canvas) -> None:
     for beg, end in W_E:   draw_line(canvas, beg, end)
     for beg, end in SW_NE: draw_line(canvas, beg, end)
     for beg, end in NW_SE: draw_line(canvas, beg, end)
 
-def draw(canvas: tk.Canvas) -> None:
+def draw_star_points(canvas: tk.Canvas) -> None:
+    for ab in STAR_POINTS:
+        cx, cy = get_x(ab), get_y(ab)
+        canvas.create_oval(cx - 7, cy - 7, cx + 7, cy + 7,
+            fill=LINE_COLOR, outline=LINE_COLOR)
+
+def draw_empty_board(canvas: tk.Canvas) -> None:
     draw_base_hex(canvas)
     draw_base_margin(canvas)
     draw_lines(canvas)
+    draw_star_points(canvas)
+
+def draw_stone(canvas: tk.Canvas, ab: Point, color: str) -> None:
+    cx, cy = get_x(ab), get_y(ab)
+    canvas.create_oval(cx - 17, cy - 17, cx + 17, cy + 17,
+        fill=color, outline=STONE_EDGE_COLOR, width=2)
+    canvas.create_oval(cx - 19, cy - 19, cx + 19, cy + 19,
+        fill="", outline=BOARD_COLOR, width=2)
+
+
+# Starting code:
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Go3 Board")
-    canvas = tk.Canvas(root, width=600, height=540, bg="#cccc99",
+    canvas = tk.Canvas(root, width=600, height=540, bg=APP_COLOR,
                        highlightthickness=2, highlightbackground="red")
     canvas.pack()
-    draw(canvas)
+
+    draw_empty_board(canvas)
+
+
+    # Temporary testing code:
+    draw_stone(canvas, (4, 4), RED)
+    draw_stone(canvas, (9, 9), WHITE)
+    draw_stone(canvas, (4, 6), BLUE)
+    draw_stone(canvas, (2, 3), RED)
+    draw_stone(canvas, (5, 9), WHITE)
+    draw_stone(canvas, (3, 4), BLUE)
     root.mainloop()
