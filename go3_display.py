@@ -1,12 +1,16 @@
 import tkinter as tk
-from collections.abc import Iterator
+from collections.abc import Callable
+
+from go3_board import Point, StoneColor, ROW_BEGIN_END, is_valid_gameboard_point
 
 
 # Color constants
 
-RED = "#cc3333"
-WHITE = "#f0f0f0"
-BLUE = "#5050cc"
+_STONE_HEX: dict[StoneColor, str] = {
+    StoneColor.RED:   "#cc3333",
+    StoneColor.WHITE: "#f0f0f0",
+    StoneColor.BLUE:  "#5050cc",
+}
 APP_COLOR = "#CCCC99"
 BOARD_COLOR = "#CC9933"
 LINE_COLOR = "#000000"
@@ -17,14 +21,7 @@ GHOST = "#aaaaaa"
 
 # Board geometry constants
 
-Point = tuple[int, int]
-
 STAR_POINTS: list[Point] = [ [3,3], [6,3], [3,6], [6,6], [9,6], [6,9], [9,9] ]
-
-ROW_BEGIN_END: list[tuple[int, int]] = [
-    (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11),
-    (2, 11), (3, 11), (4, 11), (5, 11), (6, 11),
-]
 
 W_E: list[tuple[Point, Point]] = [
     ((1, 1),  (6, 1)),
@@ -86,18 +83,6 @@ def is_in_board_hex(x: int, y: int) -> bool:
 def get_x(ab: Point) -> int: return 150 + 50 * ab[0] - 25 * ab[1]
 def get_y(ab: Point) -> int: return 6 + 44 * ab[1]
 
-def is_valid_gameboard_point(point: Point) -> bool:
-    a, b = point
-    if not 1 <= b <= 11:
-        return False
-    start, end = ROW_BEGIN_END[b - 1]
-    return start <= a <= end
-
-def gameboard_points() -> Iterator[Point]:
-    for b, (start, end) in enumerate(ROW_BEGIN_END, start=1):
-        for a in range(start, end + 1):
-            yield (a, b)
-
 def get_point(x: int, y: int) -> Point | None:
     b = (y - 28) // 44 + 1
     a = (x - 125 + 25 * b) // 50
@@ -137,72 +122,60 @@ def draw_empty_board(canvas: tk.Canvas) -> None:
     draw_lines(canvas)
     draw_star_points(canvas)
 
-def draw_stone(canvas: tk.Canvas, ab: Point, color: str) -> None:
+def draw_stone(canvas: tk.Canvas, ab: Point, color: StoneColor) -> None:
     if not is_valid_gameboard_point(ab):
         raise ValueError(f"Point {ab} is not a valid gameboard position")
     cx, cy = get_x(ab), get_y(ab)
+    hex_color = _STONE_HEX[color]
     canvas.create_oval(cx - 17, cy - 17, cx + 17, cy + 17,
-        fill=color, outline=STONE_EDGE_COLOR, width=2)
+        fill=hex_color, outline=STONE_EDGE_COLOR, width=2)
     canvas.create_oval(cx - 19, cy - 19, cx + 19, cy + 19,
         fill="", outline=BOARD_COLOR, width=2)
 
 
-# Starting code:
+class Go3Display:
+    def __init__(self, on_click: Callable[[Point], None]) -> None:
+        self._on_click = on_click
+        self._root = tk.Tk()
+        self._root.title("Go3 Board")
+        self._canvas = tk.Canvas(self._root, width=600, height=540, bg=APP_COLOR,
+                                 highlightthickness=2, highlightbackground="red")
+        self._canvas.pack()
+        draw_empty_board(self._canvas)
+        self._hover_circle = None
+        self._canvas.bind("<Button-1>", self._handle_click)
+        self._canvas.bind("<Motion>", self._handle_mouse_move)
+        self._canvas.bind("<Leave>", self._clear_hover)
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.title("Go3 Board")
-    canvas = tk.Canvas(root, width=600, height=540, bg=APP_COLOR,
-                       highlightthickness=2, highlightbackground="red")
-    canvas.pack()
+    def draw_stone(self, ab: Point, color: StoneColor) -> None:
+        draw_stone(self._canvas, ab, color)
 
-    draw_empty_board(canvas)
+    def run(self) -> None:
+        self._root.mainloop()
 
-    hover_circle = None
+    def _handle_click(self, event) -> None:
+        pt = get_point(event.x, event.y)
+        if pt is not None:
+            self._on_click(pt)
 
-    def clear_hover(event=None):
-        global hover_circle
-        if hover_circle is not None:
-            canvas.delete(hover_circle)
-            hover_circle = None
-        canvas.config(cursor="")
+    def _clear_hover(self, event=None) -> None:
+        if self._hover_circle is not None:
+            self._canvas.delete(self._hover_circle)
+            self._hover_circle = None
+        self._canvas.config(cursor="")
 
-    def on_mouse_move(event):
-        global hover_circle
-        clear_hover()
+    def _handle_mouse_move(self, event) -> None:
+        self._clear_hover()
         pt = get_point(event.x, event.y)
         if pt is not None:
             cx = get_x(pt)
             cy = get_y(pt)
             r = 21
-            hover_circle = canvas.create_oval(
+            self._hover_circle = self._canvas.create_oval(
                 cx - r, cy - r, cx + r, cy + r,
                 outline=GHOST, fill="", width=2
             )
         if is_in_board_hex(event.x, event.y):
-            canvas.config(cursor="none")
+            self._canvas.config(cursor="none")
         else:
-            canvas.config(cursor="")
-
-    canvas.bind("<Button-1>", lambda e: print(get_point(e.x, e.y)))
-    canvas.bind("<Motion>", on_mouse_move)
-    canvas.bind("<Leave>", clear_hover)
-
-
-    # Temporary testing code:
-
-    pts = list(gameboard_points())
-    assert len(pts) == 91        # standard Go3 hexagonal board has 91 points
-    assert (1, 1) in pts
-    assert (6, 11) in pts
-    assert (1, 11) not in pts    # row 11 starts at col 6
-
-    draw_stone(canvas, (4, 4), RED)
-    draw_stone(canvas, (9, 9), WHITE)
-    draw_stone(canvas, (4, 6), BLUE)
-    draw_stone(canvas, (2, 3), RED)
-    draw_stone(canvas, (5, 9), WHITE)
-    draw_stone(canvas, (3, 4), BLUE)
-
-
-    root.mainloop()
+            self._canvas.config(cursor="")
