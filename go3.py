@@ -1,5 +1,5 @@
 from go3_board import RED, WHITE, BLUE, gameboard_points
-from go3_display import Go3Display
+from go3_display import init, place_stone, run
 
 
 def on_move(point: tuple[int, int]) -> None:
@@ -14,17 +14,17 @@ def main() -> None:
     assert (6, 11) in pts
     assert (1, 11) not in pts    # row 11 starts at col 6
 
-    display = Go3Display(on_click=on_move)
+    init(on_click=on_move)
 
     # Temporary stone placement for visual testing:
-    display.draw_stone((4, 4), RED)
-    display.draw_stone((9, 9), WHITE)
-    display.draw_stone((4, 6), BLUE)
-    display.draw_stone((2, 3), RED)
-    display.draw_stone((5, 9), WHITE)
-    display.draw_stone((3, 4), BLUE)
+    place_stone((4, 4), RED)
+    place_stone((9, 9), WHITE)
+    place_stone((4, 6), BLUE)
+    place_stone((2, 3), RED)
+    place_stone((5, 9), WHITE)
+    place_stone((3, 4), BLUE)
 
-    display.run()
+    run()
 
 
 if __name__ == "__main__":

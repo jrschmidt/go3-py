@@ -1,18 +1,15 @@
 from collections.abc import Iterator
-from enum import Enum
+from typing import Literal
 
 
 Point = tuple[int, int]
 
 
-class StoneColor(Enum):
-    RED = "red"
-    WHITE = "white"
-    BLUE = "blue"
+StoneColor = Literal["RED", "WHITE", "BLUE"]
 
-RED   = StoneColor.RED
-WHITE = StoneColor.WHITE
-BLUE  = StoneColor.BLUE
+RED:   StoneColor = "RED"
+WHITE: StoneColor = "WHITE"
+BLUE:  StoneColor = "BLUE"
 
 
 ROW_BEGIN_END: list[tuple[int, int]] = [
