@@ -1,3 +1,13 @@
+# # # #    #   #   #   #   #     # # # #
+# # #         go3_display.py         # # #
+# # # #    #   #   #   #   #     # # # #
+
+# This module manages the Go3 GUI in a Tkinter display.
+# It draws the Go3 gameboard, and draws and erases Go stones.
+# Mouse click events are handled by the callback passed
+# from go3.py when the display is instantiated.
+
+
 import tkinter as tk
 from collections.abc import Callable
 
@@ -77,6 +87,31 @@ _NW_SE: list[tuple[Point, Point]] = [
 ]
 
 
+# Public API
+
+def display_init(on_click: Callable[[Point], None]) -> None:
+    global _on_click, _root, _canvas, _hover_circle
+    _on_click = on_click
+    _root = tk.Tk()
+    _root.title("Go3 Board")
+    _canvas = tk.Canvas(_root, width=600, height=540, bg=_APP_COLOR,
+                        highlightthickness=2, highlightbackground="red")
+    _canvas.pack()
+    draw_empty_board(_canvas)
+    _hover_circle = None
+    _canvas.bind("<Button-1>", _handle_click)
+    _canvas.bind("<Motion>", _handle_mouse_move)
+    _canvas.bind("<Leave>", _clear_hover)
+
+
+def run() -> None:
+    _root.mainloop()
+
+
+def place_stone(ab: Point, color: StoneColor) -> None:
+    draw_stone(_canvas, ab, color)
+
+
 # Coordinate transform functions
 
 def is_in_board_hex(x: int, y: int) -> bool:
@@ -142,28 +177,7 @@ def draw_stone(canvas: tk.Canvas, ab: Point, color: StoneColor) -> None:
         fill="", outline=_BOARD_COLOR, width=2)
 
 
-def init(on_click: Callable[[Point], None]) -> None:
-    global _on_click, _root, _canvas, _hover_circle
-    _on_click = on_click
-    _root = tk.Tk()
-    _root.title("Go3 Board")
-    _canvas = tk.Canvas(_root, width=600, height=540, bg=_APP_COLOR,
-                        highlightthickness=2, highlightbackground="red")
-    _canvas.pack()
-    draw_empty_board(_canvas)
-    _hover_circle = None
-    _canvas.bind("<Button-1>", _handle_click)
-    _canvas.bind("<Motion>", _handle_mouse_move)
-    _canvas.bind("<Leave>", _clear_hover)
-
-
-def run() -> None:
-    _root.mainloop()
-
-
-def place_stone(ab: Point, color: StoneColor) -> None:
-    draw_stone(_canvas, ab, color)
-
+# Event handlers
 
 def _handle_click(event) -> None:
     pt = get_point(event.x, event.y)

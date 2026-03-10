@@ -1,6 +1,16 @@
+# # # #    #   #   #   #   #     # # # #
+# # #         go3_board.py         # # #
+# # # #    #   #   #   #   #     # # # #
+
+# Types, constants and methods pertaining to the
+# Go3 gameboard layout and structure.
+
+
 from collections.abc import Iterator
 from typing import Literal
 
+
+# Type definitions
 
 Point = tuple[int, int]
 
@@ -12,11 +22,15 @@ WHITE: StoneColor = "WHITE"
 BLUE:  StoneColor = "BLUE"
 
 
+# Constants
+
 ROW_BEGIN_END: list[tuple[int, int]] = [
     (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11),
     (2, 11), (3, 11), (4, 11), (5, 11), (6, 11),
 ]
 
+
+# Functions
 
 def is_valid_gameboard_point(point: Point) -> bool:
     a, b = point
