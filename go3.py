@@ -6,8 +6,9 @@
 # of Go3. This is the main module.
 
 
-from go3_board import RED, WHITE, BLUE, gameboard_points
+from go3_board import RED, WHITE, BLUE, gameboard_points, Stones
 from go3_display import display_init, run, place_stone
+from go3_analyze import init_analyzer
 
 
 # This function is the callback supplied to go3_display.py as
@@ -18,6 +19,8 @@ def on_move(point: tuple[int, int]) -> None:
 
 
 def main() -> None:
+    anz = init_analyzer()
+    stones: Stones = []
 
     # Temporary testing code:
     pts = list(gameboard_points())

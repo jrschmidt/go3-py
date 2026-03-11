@@ -14,8 +14,10 @@ from typing import Literal
 
 Point = tuple[int, int]
 
-
 StoneColor = Literal["RED", "WHITE", "BLUE"]
+
+Stone = tuple[Point, StoneColor]
+Stones = list[Stone]
 
 RED:   StoneColor = "RED"
 WHITE: StoneColor = "WHITE"
