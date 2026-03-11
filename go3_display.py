@@ -20,6 +20,7 @@ _on_click: Callable[[Point], None] | None = None
 _root: tk.Tk | None = None
 _canvas: tk.Canvas | None = None
 _hover_circle: int | None = None
+_hover_label: int | None = None
 
 
 # Color constants
@@ -36,6 +37,7 @@ _LINE_COLOR = "#000000"
 _BOARD_MARGIN_COLOR = "#000000"
 _STONE_EDGE_COLOR = "#000000"
 _GHOST = "#aaaaaa"
+_TEXT_COLOR = "#666666"
 
 
 # Board geometry constants
@@ -90,7 +92,7 @@ _NW_SE: list[tuple[Point, Point]] = [
 # Public API
 
 def display_init(on_click: Callable[[Point], None]) -> None:
-    global _on_click, _root, _canvas, _hover_circle
+    global _on_click, _root, _canvas, _hover_circle, _hover_label
     _on_click = on_click
     _root = tk.Tk()
     _root.title("Go3 Board")
@@ -185,12 +187,24 @@ def _handle_click(event) -> None:
         _on_click(pt)
 
 
+def _update_coord_label(text: str) -> None:
+    global _hover_label
+    if _hover_label is None:
+        _hover_label = _canvas.create_text(
+            590, 10, anchor="ne", text=text,
+            font=("TkDefaultFont", 15), fill=_TEXT_COLOR
+        )
+    else:
+        _canvas.itemconfig(_hover_label, text=text)
+
+
 def _clear_hover(event=None) -> None:
     global _hover_circle
     if _hover_circle is not None:
         _canvas.delete(_hover_circle)
         _hover_circle = None
     _canvas.config(cursor="")
+    _update_coord_label("")
 
 
 def _handle_mouse_move(event) -> None:
@@ -209,3 +223,5 @@ def _handle_mouse_move(event) -> None:
         _canvas.config(cursor="none")
     else:
         _canvas.config(cursor="")
+    coord_text = f"{pt[0]}, {pt[1]}" if pt is not None else "-  -"
+    _update_coord_label(coord_text)
