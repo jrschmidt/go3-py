@@ -6,6 +6,11 @@
 # main app module go3.py. Additional code can be added or removed
 # to execute testing as desired.
 
+# These two lines are added to enable us to execute this file from project
+# root with `python3 test/run_tests.py`.
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from go3_board import RED, WHITE, BLUE, gameboard_points, Stones
 from go3_display import display_init, run, place_stone
 from go3_analyze import init_analyzer
