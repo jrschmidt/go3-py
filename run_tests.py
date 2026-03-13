@@ -1,14 +1,16 @@
 # # # #    #   #   #   #   #     # # # #
-# # #         go3.py         # # #
+# # #        run_tests.py          # # #
 # # # #    #   #   #   #   #     # # # #
 
-# This is a Claude Code assisted python/Tkinter port
-# of Go3. This is the main module.
-
+# This module is scaffolded with a stripped down version of the
+# main app module go3.py. Additional code can be added or removed
+# to execute testing as desired.
 
 from go3_board import RED, WHITE, BLUE, gameboard_points, Stones
 from go3_display import display_init, run, place_stone
 from go3_analyze import init_analyzer
+
+from test_points import test_set_1 as test_points
 
 
 # This function is the callback supplied to go3_display.py as
@@ -24,12 +26,12 @@ def main() -> None:
     display_init(on_click=on_move)
 
     # # Temporary stone placement for visual testing:
-    place_stone((4, 4), RED)
-    place_stone((9, 9), WHITE)
-    place_stone((4, 6), BLUE)
-    place_stone((2, 3), RED)
-    place_stone((5, 9), WHITE)
-    place_stone((3, 4), BLUE)
+    # place_stone((4, 4), RED)
+    # place_stone((9, 9), WHITE)
+    # place_stone((4, 6), BLUE)
+    # place_stone((2, 3), RED)
+    # place_stone((5, 9), WHITE)
+    # place_stone((3, 4), BLUE)
 
     run()
 
