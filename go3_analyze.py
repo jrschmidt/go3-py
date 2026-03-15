@@ -10,11 +10,12 @@ from typing import TypedDict
 from go3_board import Point, StoneColor
 
 
-# Type aliases
+# # # # #     Type aliases     # # # # #
 
 GroupId = int
 
 
+# # # # #     Classes     # # # # #
 class StoneGroup(TypedDict):
     id: GroupId
     player: StoneColor

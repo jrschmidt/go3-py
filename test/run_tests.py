@@ -15,7 +15,7 @@ from go3_board import RED, WHITE, BLUE, gameboard_points, Stones
 from go3_display import display_init, run, place_stone
 from go3_analyze import init_analyzer
 
-from test_points import test_set_1 as test_points
+from test_points import test_set_3 as test_points
 
 
 # This function is the callback supplied to go3_display.py as
@@ -29,6 +29,9 @@ def main() -> None:
     board: Stones = []
 
     display_init(on_click=on_move)
+
+    for move in test_points:
+        place_stone(move[0], move[1])
 
     # # Temporary stone placement for visual testing:
     # place_stone((4, 4), RED)
