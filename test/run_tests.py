@@ -8,11 +8,11 @@
 
 # These two lines are added to enable us to execute this file from project
 # root with `python3 test/run_tests.py`.
-import sys, os
+import sys, os, time, tkinter as tk, tkinter as tk
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from go3_board import RED, WHITE, BLUE, gameboard_points, Stones
-from go3_display import display_init, run, place_stone
+from go3_display import display_init, run, place_stone, remove_stone
 from go3_analyze import init_analyzer
 
 from test_points import test_set_3 as test_points
@@ -33,13 +33,8 @@ def main() -> None:
     for move in test_points:
         place_stone(move[0], move[1])
 
-    # # Temporary stone placement for visual testing:
-    # place_stone((4, 4), RED)
-    # place_stone((9, 9), WHITE)
-    # place_stone((4, 6), BLUE)
-    # place_stone((2, 3), RED)
-    # place_stone((5, 9), WHITE)
-    # place_stone((3, 4), BLUE)
+    for i, move in enumerate(test_points):
+        tk._default_root.after((i + 1) * 1000, lambda m=move: remove_stone(m[0]))
 
     run()
 

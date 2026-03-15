@@ -120,9 +120,15 @@ def display_init(on_click: Callable[[Point], None]) -> None:
 def run() -> None:
     _root.mainloop()
 
+
 # Draw a stone at point (a,b) of the designated color.
 def place_stone(ab: Point, color: StoneColor) -> None:
     draw_stone(_canvas, ab, color)
+
+
+# Draw over the stone at point (a,b) and restore the look of an empty point.
+def remove_stone(ab: Point) -> None:
+    erase_stone(_canvas, ab)
 
 
 # # # # #     Coordinate transform functions     # # # # #
@@ -138,10 +144,12 @@ def is_in_board_hex(x: int, y: int) -> bool:
             return False
     return True
 
+
 # Calculate the (x,y) pixel coordinates in the Tkinter Canvas widget of
 # point (a,b) on the gameboard.
 def get_x(ab: Point) -> int: return 150 + 50 * ab[0] - 25 * ab[1]
 def get_y(ab: Point) -> int: return 6 + 44 * ab[1]
+
 
 # Determine which gameboard point (a,b), if any, is closest to pixel (x,y)
 # on the Tkinter Canvas widget.
@@ -160,16 +168,19 @@ def draw_base_hex(canvas: tk.Canvas) -> None:
     canvas.create_polygon(157, 26, 443, 26, 576, 270, 443, 514, 157, 514, 25, 270,
         fill=_BOARD_COLOR, outline=_BOARD_MARGIN_COLOR, width=5)
 
+
 # Draw a thinner hexagonal margin directly inside the hexagon's outer margin, in keeping
 # with the visual design of traditional Go boards.
 def draw_base_margin(canvas: tk.Canvas) -> None:
     canvas.create_polygon(163, 34, 437, 34, 567, 270, 437, 506, 163, 506, 33, 270,
         fill="", outline=_BOARD_MARGIN_COLOR, width=3)
 
+
 # Draw a line on the Go3 board from one gameboard point to another.
 def draw_line(canvas: tk.Canvas, beg: Point, end: Point) -> None:
     canvas.create_line(get_x(beg), get_y(beg), get_x(end), get_y(end),
         fill=_LINE_COLOR, width=3)
+
 
 # Draw all the lines in all directions necessary to draw the Go3 gameboard.
 def draw_lines(canvas: tk.Canvas) -> None:
@@ -186,12 +197,14 @@ def draw_star_points(canvas: tk.Canvas) -> None:
         canvas.create_oval(cx - 7, cy - 7, cx + 7, cy + 7,
             fill=_LINE_COLOR, outline=_LINE_COLOR)
 
+
 # Draw the entire Go3 board (with no stones placed yet).
 def draw_empty_board(canvas: tk.Canvas) -> None:
     draw_base_hex(canvas)
     draw_base_margin(canvas)
     draw_lines(canvas)
     draw_star_points(canvas)
+
 
 # Draw a stone of the designated color at point (a,b).
 def draw_stone(canvas: tk.Canvas, ab: Point, color: StoneColor) -> None:
@@ -203,6 +216,20 @@ def draw_stone(canvas: tk.Canvas, ab: Point, color: StoneColor) -> None:
         fill=color, outline=_STONE_EDGE_COLOR, width=2)
     canvas.create_oval(cx - 19, cy - 19, cx + 19, cy + 19,
         fill="", outline=_BOARD_COLOR, width=2)
+
+
+# Remove the image of a stone from point (a,b).
+def erase_stone(canvas: tk.Canvas, ab: Point) -> None:
+    if not is_valid_gameboard_point(ab):
+        raise ValueError(f"Point {ab} is not a valid gameboard position")
+    cx, cy = get_x(ab), get_y(ab)
+    canvas.create_oval(cx - 19, cy - 19, cx + 19, cy + 19,
+        fill=_BOARD_COLOR, outline="")
+    canvas.create_line(cx-11, cy+19, cx+11, cy-19, fill=_LINE_COLOR, width=3)
+    canvas.create_line(cx-11, cy-19, cx+11, cy+19, fill=_LINE_COLOR, width=3)
+    canvas.create_line(cx-21, cy, cx+21, cy, fill=_LINE_COLOR, width=3)
+    draw_base_margin(canvas)
+
 
 
 # # # # #     Event handlers     # # # # #
@@ -225,6 +252,7 @@ def _update_coord_label(text: str) -> None:
         )
     else:
         _canvas.itemconfig(_hover_label, text=text)
+
 
 # Clears the mouse hover circle if the mouse moves out of the gameboard hexagon.
 def _clear_hover(event=None) -> None:
