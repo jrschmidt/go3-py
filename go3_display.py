@@ -11,7 +11,7 @@
 import tkinter as tk
 from collections.abc import Callable
 
-from go3_board import Point, StoneColor, RED, WHITE, BLUE, is_valid_gameboard_point
+from go3_board import Point, StoneColor, Stones, RED, WHITE, BLUE, is_valid_gameboard_point
 
 
 # # # # #     Module-level state     # # # # #
@@ -126,9 +126,9 @@ def place_stone(ab: Point, color: StoneColor) -> None:
     draw_stone(_canvas, ab, color)
 
 
-# Draw over the stone at point (a,b) and restore the look of an empty point.
-def remove_stone(ab: Point) -> None:
-    erase_stone(_canvas, ab)
+# Redraw the gameboard with the designated points and stone colors.
+def refresh_stones(stones: Stones):
+    redraw_stones(_canvas, stones)
 
 
 # # # # #     Coordinate transform functions     # # # # #
@@ -216,20 +216,13 @@ def draw_stone(canvas: tk.Canvas, ab: Point, color: StoneColor) -> None:
         fill=color, outline=_STONE_EDGE_COLOR, width=2)
     canvas.create_oval(cx - 19, cy - 19, cx + 19, cy + 19,
         fill="", outline=_BOARD_COLOR, width=2)
+    
 
-
-# Remove the image of a stone from point (a,b).
-def erase_stone(canvas: tk.Canvas, ab: Point) -> None:
-    if not is_valid_gameboard_point(ab):
-        raise ValueError(f"Point {ab} is not a valid gameboard position")
-    cx, cy = get_x(ab), get_y(ab)
-    canvas.create_oval(cx - 19, cy - 19, cx + 19, cy + 19,
-        fill=_BOARD_COLOR, outline="")
-    canvas.create_line(cx-11, cy+19, cx+11, cy-19, fill=_LINE_COLOR, width=3)
-    canvas.create_line(cx-11, cy-19, cx+11, cy+19, fill=_LINE_COLOR, width=3)
-    canvas.create_line(cx-21, cy, cx+21, cy, fill=_LINE_COLOR, width=3)
-    draw_base_margin(canvas)
-
+# Redraw the gameboard with the points and stone colors indicated in the stones[] list.
+def redraw_stones(canvas: tk.Canvas, stones: Stones) -> None:
+    draw_empty_board(canvas)
+    for stone in stones:
+        draw_stone(canvas, stone[0], stone[1])
 
 
 # # # # #     Event handlers     # # # # #
