@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 from go3_board import RED, WHITE, BLUE, Stones
-from go3_display import display_init, run, place_stone, refresh_stones
+from go3_display import Go3Display
 from go3_analyze import init_analyzer
 
 from test_points import test_set_0 as test_points_0
@@ -33,19 +33,20 @@ def next_test_set():
 
 
 # This function is the callback supplied to go3_display.py as
-# the `on_click()` value when display_init is called .
+# the `on_click()` value when the display is instantiated.
 def on_move(point: tuple[int, int]) -> None:
     # print(point)
     set = next_test_set()
-    refresh_stones(set)
+    display.draw_stones(set)
 
 
 def main() -> None:
+    global display
     anz = init_analyzer()
     board: Stones = []
 
-    display_init(on_click=on_move)
-    run()
+    display = Go3Display(on_click=on_move)
+    display.start_loop()
 
 
 if __name__ == "__main__":
