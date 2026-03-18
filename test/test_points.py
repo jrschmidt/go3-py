@@ -1,5 +1,15 @@
 from go3_board import Stone, RED, WHITE, BLUE
 
+test_set_0 = [
+((4, 4), RED),
+((9, 9), WHITE),
+((4, 6), BLUE),
+((2, 3), RED),
+((5, 9), WHITE),
+((3, 4), BLUE)
+]
+
+
 test_set_1 = [
   ((3,4), RED),
   ((4,6), RED),
