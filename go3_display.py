@@ -30,6 +30,10 @@ _BOARD_MARGIN_COLOR = "#000000"
 _STONE_EDGE_COLOR = "#000000"
 _GHOST = "#aaaaaa"
 _TEXT_COLOR = "#3333cc"
+_DIALOG_COLOR = "#6699aa"
+_DIALOG_TEXT_COLOR = "#ffffff"
+_MSG_COLOR = "#000000"
+_MSG_TEXT_COLOR = "#ffffff"
 
 
 # # # # #     Board geometry constants     # # # # #
@@ -96,10 +100,13 @@ _NW_SE: list[tuple[Point, Point]] = [
 class GameDashboard:
     def __init__(self, frame: tk.Frame) -> None:
         self._widget = frame
-        tk.Label(self._widget, text="GAME DASHBOARD",
-                 font=("TkDefaultFont", 14, "bold")).pack(pady=(8, 2))
+        self._widget.config(bg=_DIALOG_COLOR)
+        # tk.Label(self._widget, text="GAME DASHBOARD",
+        #          font=("TkDefaultFont", 14, "bold"),
+        #          bg=_DIALOG_COLOR, fg=_DIALOG_TEXT_COLOR).pack(pady=(8, 2))
         tk.Label(self._widget,
-                 text="Game dashboard widget, controlled by go3.py.").pack()
+                 text="Game dashboard widget, controlled by go3.py.",
+                 bg=_DIALOG_COLOR, fg=_DIALOG_TEXT_COLOR).pack()
 
 
 class AnalysisDashboard:
@@ -107,8 +114,11 @@ class AnalysisDashboard:
         self._widget = frame
         tk.Label(self._widget, text="ANALYSIS DASHBOARD",
                  font=("TkDefaultFont", 14, "bold")).pack(pady=(8, 2))
-        tk.Label(self._widget,
-                 text="Analysis dashboard widget, controlled by go3_analyze.py.").pack()
+        self._text = tk.Text(self._widget, wrap="word", relief="flat",
+                             bg=_MSG_COLOR, fg=_MSG_TEXT_COLOR)
+        self._text.insert("1.0", "Analysis dashboard widget, controlled by go3_analyze.py.")
+        self._text.config(state="disabled")
+        self._text.pack(fill="both", expand=True, padx=8, pady=(0, 8))
 
 
 # # # # #     Go3Display class     # # # # #
@@ -120,15 +130,22 @@ class Go3Display:
         self._on_click = on_click
         self._root = tk.Tk()
         self._root.title("Go3 Board")
-        self._canvas = tk.Canvas(self._root, width=600, height=540, bg=_APP_COLOR,
+        _main_frame = tk.Frame(self._root)
+        _main_frame.pack(fill="both", expand=True)
+        self._canvas = tk.Canvas(_main_frame, width=600, height=540, bg=_APP_COLOR,
                                  highlightthickness=2, highlightbackground="red")
-        self._canvas.pack()
-        self._dashboard          = ttk.Notebook(self._root)
+        self._canvas.pack(side="left")
+        _dash_frame = tk.Frame(_main_frame, width=480)
+        _dash_frame.pack(side="left", fill="y")
+        _dash_frame.pack_propagate(False)
+        self._dashboard          = ttk.Notebook(_dash_frame)
         self._game               = tk.Frame(self._dashboard)
         self._analysis           = tk.Frame(self._dashboard)
         self._dashboard.add(self._game,     text="GAME")
         self._dashboard.add(self._analysis, text="ANALYSIS")
         self._dashboard.pack(fill="both", expand=True)
+        self._dashboard.bind("<<NotebookTabChanged>>",
+                             lambda e: self._root.update_idletasks())
         self._game_dashboard     = GameDashboard(self._game)
         self._analysis_dashboard = AnalysisDashboard(self._analysis)
         self._hover_circle: int | None = None
