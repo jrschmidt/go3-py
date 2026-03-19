@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 from go3_board import RED, WHITE, BLUE, Stones
-from go3_display import Go3Display
+from go3_display import Go3Display, GameDashboard
 from go3_analyze import init_analyzer
 
 from test_points import test_set_0 as test_points_0
@@ -25,6 +25,7 @@ from test_points import test_set_3 as test_points_3
 test_sets = [test_points_0, test_points_1, test_points_2, test_points_3]
 ts_i = -1
 
+
 def next_test_set():
     global ts_i
 
@@ -32,22 +33,37 @@ def next_test_set():
     return test_sets[ts_i]
 
 
+###########################################################
+###########################################################
+
+board: Stones = []
+
+display = Go3Display(on_click=None)   # on_click defined below
+game_dash = display.game_dashboard
+anz = init_analyzer(display.analysis_dashboard)
+
+
 # This function is the callback supplied to go3_display.py as
 # the `on_click()` value when the display is instantiated.
 def on_move(point: tuple[int, int]) -> None:
-    # print(point)
     set = next_test_set()
     display.draw_stones(set)
 
 
-def main() -> None:
-    global display
-    anz = init_analyzer()
-    board: Stones = []
+display._on_click = on_move   # wire callback after on_move is defined
 
-    display = Go3Display(on_click=on_move)
-    display.start_loop()
+display.start_loop()
 
 
-if __name__ == "__main__":
-    main()
+###########################################################
+###########################################################
+
+
+# This function is the callback supplied to go3_display.py as
+# the `on_click()` value when the display is instantiated.
+# def on_move(point: tuple[int, int]) -> None:
+#     global display
+
+#     # print(point)
+#     set = next_test_set()
+#     display.draw_stones(set)

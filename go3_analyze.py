@@ -8,6 +8,7 @@
 
 from typing import TypedDict
 from go3_board import Point, StoneColor
+from go3_display import AnalysisDashboard
 
 
 # # # # #     Type aliases     # # # # #
@@ -25,9 +26,10 @@ class StoneGroup(TypedDict):
 
 
 class Analyzer:
-    def __init__(self) -> None:
+    def __init__(self, dashboard: AnalysisDashboard) -> None:
         self.groups: list[StoneGroup] = []
         self._next_group_id: int = 1
+        self._dashboard = dashboard
 
     def get_new_group_id(self) -> GroupId:
         group_id = self._next_group_id
@@ -35,5 +37,5 @@ class Analyzer:
         return group_id
 
 
-def init_analyzer() -> Analyzer:
-    return Analyzer()
+def init_analyzer(dashboard: AnalysisDashboard) -> Analyzer:
+    return Analyzer(dashboard)

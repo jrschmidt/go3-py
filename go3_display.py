@@ -9,6 +9,7 @@
 
 
 import tkinter as tk
+import tkinter.ttk as ttk
 from collections.abc import Callable
 
 from go3_board import Point, StoneColor, Stones, RED, WHITE, BLUE, is_valid_gameboard_point
@@ -90,6 +91,26 @@ _NW_SE: list[tuple[Point, Point]] = [
 ]
 
 
+# # # # #     Dashboard classes     # # # # #
+
+class GameDashboard:
+    def __init__(self, frame: tk.Frame) -> None:
+        self._widget = frame
+        tk.Label(self._widget, text="GAME DASHBOARD",
+                 font=("TkDefaultFont", 14, "bold")).pack(pady=(8, 2))
+        tk.Label(self._widget,
+                 text="Game dashboard widget, controlled by go3.py.").pack()
+
+
+class AnalysisDashboard:
+    def __init__(self, frame: tk.Frame) -> None:
+        self._widget = frame
+        tk.Label(self._widget, text="ANALYSIS DASHBOARD",
+                 font=("TkDefaultFont", 14, "bold")).pack(pady=(8, 2))
+        tk.Label(self._widget,
+                 text="Analysis dashboard widget, controlled by go3_analyze.py.").pack()
+
+
 # # # # #     Go3Display class     # # # # #
 
 class Go3Display:
@@ -102,6 +123,14 @@ class Go3Display:
         self._canvas = tk.Canvas(self._root, width=600, height=540, bg=_APP_COLOR,
                                  highlightthickness=2, highlightbackground="red")
         self._canvas.pack()
+        self._dashboard          = ttk.Notebook(self._root)
+        self._game               = tk.Frame(self._dashboard)
+        self._analysis           = tk.Frame(self._dashboard)
+        self._dashboard.add(self._game,     text="GAME")
+        self._dashboard.add(self._analysis, text="ANALYSIS")
+        self._dashboard.pack(fill="both", expand=True)
+        self._game_dashboard     = GameDashboard(self._game)
+        self._analysis_dashboard = AnalysisDashboard(self._analysis)
         self._hover_circle: int | None = None
         self._hover_label: int | None = None
         self._canvas.bind("<Button-1>", self._handle_click)
@@ -111,6 +140,14 @@ class Go3Display:
 
 
     # # # # #     Public methods     # # # # #
+
+    @property
+    def game_dashboard(self) -> GameDashboard:
+        return self._game_dashboard
+
+    @property
+    def analysis_dashboard(self) -> AnalysisDashboard:
+        return self._analysis_dashboard
 
     def start_loop(self) -> None:
         self._root.mainloop()
