@@ -1,5 +1,5 @@
 # # # #    #   #   #   #   #     # # # #
-# # #        go3_analyze.py        # # #
+# # #        go3_analyzer.py        # # #
 # # # #    #   #   #   #   #     # # # #
 
 # Analyzer module for Go3: finds allowable moves and
@@ -31,6 +31,7 @@ class Analyzer:
         self._next_group_id: int = 1
         self._dashboard = dashboard
 
+    # Utility to generate a  new ID for a stone group.
     def get_new_group_id(self) -> GroupId:
         group_id = self._next_group_id
         self._next_group_id += 1

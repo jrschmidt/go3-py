@@ -8,13 +8,13 @@
 
 from go3_board import RED, WHITE, BLUE, gameboard_points, Stones
 from go3_display import Go3Display, GameDashboard
-from go3_analyze import init_analyzer
+from go3_analyzer import init_analyzer
 
 board: Stones = []
 
-display = Go3Display(on_click=None)   # on_click defined below
-game_dash = display.game_dashboard
-anz = init_analyzer(display.analysis_dashboard)
+display = Go3Display(on_click=None)   # (on_click defined below)
+game_gui = display.game_dashboard
+analyzer = init_analyzer(display.analysis_dashboard)
 
 
 # This function is the callback supplied to go3_display.py as
@@ -32,6 +32,6 @@ def on_move(point: tuple[int, int]) -> None:
     display.draw_stones(stones)
 
 
-display._on_click = on_move   # wire callback after on_move is defined
+display._on_click = on_move   # (hook up the callback after on_move is defined)
 
 display.start_loop()

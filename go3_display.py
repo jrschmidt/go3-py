@@ -23,13 +23,16 @@ _STONE_COLOR: dict[StoneColor, str] = {
     BLUE:  "#5050cc",
 }
 
+# Gameboard widget colors
 _APP_COLOR = "#cccc99"
 _BOARD_COLOR = "#cc9933"
 _LINE_COLOR = "#000000"
 _BOARD_MARGIN_COLOR = "#000000"
 _STONE_EDGE_COLOR = "#000000"
 _GHOST = "#aaaaaa"
-_TEXT_COLOR = "#3333cc"
+
+# Dashboard widget colors
+_CANVAS_TEXT_COLOR = "#3333cc"
 _DIALOG_COLOR = "#6699aa"
 _DIALOG_TEXT_COLOR = "#ffffff"
 _MSG_COLOR = "#000000"
@@ -97,6 +100,11 @@ _NW_SE: list[tuple[Point, Point]] = [
 
 # # # # #     Dashboard classes     # # # # #
 
+# Two dashboard classes to be inserted into a tabbed tk.Notebook/tk.Frame container
+# adjacent to the gameboard widget.
+
+# The primary display area for user interaction during the course of gameplay.
+# ("It's your turn", etc.)
 class GameDashboard:
     def __init__(self, frame: tk.Frame) -> None:
         self._widget = frame
@@ -108,7 +116,8 @@ class GameDashboard:
                  text="Game dashboard widget, controlled by go3.py.",
                  bg=_DIALOG_COLOR, fg=_DIALOG_TEXT_COLOR).pack()
 
-
+# A text area for diagnostic messages, displaying variable values for development and
+# debugging, etc.
 class AnalysisDashboard:
     def __init__(self, frame: tk.Frame) -> None:
         self._widget = frame
@@ -116,9 +125,11 @@ class AnalysisDashboard:
                  font=("TkDefaultFont", 14, "bold")).pack(pady=(8, 2))
         self._text = tk.Text(self._widget, wrap="word", relief="flat",
                              bg=_MSG_COLOR, fg=_MSG_TEXT_COLOR)
-        self._text.insert("1.0", "Analysis dashboard widget, controlled by go3_analyze.py.")
-        self._text.config(state="disabled")
+        self._text.insert("1.0", "Analysis dashboard widget, controlled by go3_analyzer.py.")
         self._text.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+
+    def printline(self, s: str) -> None:
+        self._text.insert("end", "\n" + s)
 
 
 # # # # #     Go3Display class     # # # # #
@@ -277,7 +288,7 @@ class Go3Display:
         if self._hover_label is None:
             self._hover_label = self._canvas.create_text(
                 590, 10, anchor="ne", text=text,
-                font=("TkDefaultFont", 20), fill=_TEXT_COLOR
+                font=("TkDefaultFont", 20), fill=_CANVAS_TEXT_COLOR
             )
         else:
             self._canvas.itemconfig(self._hover_label, text=text)
