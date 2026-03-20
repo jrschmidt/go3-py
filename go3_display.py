@@ -10,6 +10,7 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter.scrolledtext import ScrolledText
 from collections.abc import Callable
 
 from go3_board import Point, StoneColor, Stones, RED, WHITE, BLUE, is_valid_gameboard_point
@@ -123,13 +124,15 @@ class AnalysisDashboard:
         self._widget = frame
         tk.Label(self._widget, text="ANALYSIS DASHBOARD",
                  font=("TkDefaultFont", 14, "bold")).pack(pady=(8, 2))
-        self._text = tk.Text(self._widget, wrap="word", relief="flat",
-                             bg=_MSG_COLOR, fg=_MSG_TEXT_COLOR)
-        self._text.insert("1.0", "Analysis dashboard widget, controlled by go3_analyzer.py.")
+        self._text = ScrolledText(self._widget, wrap="word", relief="flat",
+                                  bg=_MSG_COLOR, fg=_MSG_TEXT_COLOR)
+        self._text.insert("1.0", "ANALYSIS DASHBOARD WIDGET\n")
+        self._text.insert("2.0", "Controlled by go3_analyzer.py.\n")
         self._text.pack(fill="both", expand=True, padx=8, pady=(0, 8))
 
     def printline(self, s: str) -> None:
         self._text.insert("end", "\n" + s)
+        self._text.see(tk.END)
 
 
 # # # # #     Go3Display class     # # # # #

@@ -6,7 +6,7 @@
 # of Go3. This is the main module.
 
 
-from go3_board import RED, WHITE, BLUE, gameboard_points, Point, Stone, Stones
+from go3_board import RED, WHITE, BLUE, gameboard_points, Point, Stone, Stones, GameState
 from go3_display import Go3Display, GameDashboard
 from go3_analyzer import init_analyzer
 
@@ -21,7 +21,7 @@ analyzer = init_analyzer(display.analysis_dashboard)
 # the `on_click()` value when the display is instantiated.
 def on_move(point: Point) -> None:
     move: Stone = (point, BLUE)
-    analyzer.analyze_move(move)
+    state: GameState = analyzer.analyze_move(move)
 
 
 display._on_click = on_move   # (hook up the callback after on_move is defined)

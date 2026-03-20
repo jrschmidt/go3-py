@@ -11,7 +11,8 @@
 
 
 from collections.abc import Iterator
-from typing import Literal
+from enum import Enum
+from typing import TypedDict
 
 
 # # # # #     Type definitions     # # # # #
@@ -23,7 +24,10 @@ Point = tuple[int, int]
 
 # The stone colors of the three players. (Traditional two-player rectangular Go
 # uses black and white stones.)
-StoneColor = Literal["RED", "WHITE", "BLUE"]
+class StoneColor(str, Enum):
+    RED   = "RED"
+    WHITE = "WHITE"
+    BLUE  = "BLUE"
 
 # Represent a stone played on the board.
 Stone = tuple[Point, StoneColor]
@@ -31,6 +35,16 @@ Stone = tuple[Point, StoneColor]
 # A Stones[] list is used to represent all the stones currently on the board.
 # Stones[] lists are also used in test and game analysis functions.
 Stones = list[Stone]
+
+# The information that needs to be passed between the display and analyzer modules,
+# via the go3.py controller module during gameplay:
+    # `next_player` : Which player moves next.
+    # `stones` : All the stones currently on the board.
+    # `legal_moves` : All the currently available legal moves for the curent player.
+class GameState(TypedDict):
+    next_player: StoneColor
+    stones: Stones
+    legal_moves: list[Point]
 
 
 # # # # #     Constants     # # # # #
@@ -49,9 +63,9 @@ ROW_BEGIN_END: list[tuple[int, int]] = [
 ]
 
 # Define RED, WHITE, and BLUE as constants of type StoneColor.
-RED:   StoneColor = "RED"
-WHITE: StoneColor = "WHITE"
-BLUE:  StoneColor = "BLUE"
+RED:   StoneColor = StoneColor.RED
+WHITE: StoneColor = StoneColor.WHITE
+BLUE:  StoneColor = StoneColor.BLUE
 
 
 # # # # #     Functions     # # # # #
@@ -70,3 +84,7 @@ def gameboard_points() -> Iterator[Point]:
     for b, (start, end) in enumerate(ROW_BEGIN_END, start=1):
         for a in range(start, end + 1):
             yield (a, b)
+
+# Returns a set of all points on the gameboard.
+def all_gameboard_points() -> set[Point]:
+    return set(gameboard_points())
