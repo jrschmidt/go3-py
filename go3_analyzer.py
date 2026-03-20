@@ -7,7 +7,7 @@
 
 
 from typing import TypedDict
-from go3_board import Point, StoneColor
+from go3_board import Point, StoneColor, Stone, Stones
 from go3_display import AnalysisDashboard
 
 
@@ -30,6 +30,9 @@ class Analyzer:
         self.groups: list[StoneGroup] = []
         self._next_group_id: int = 1
         self._dashboard = dashboard
+
+    def analyze_move(self, move: Stone):
+        self._dashboard.printline(f"You clicked {move}")
 
     # Utility to generate a  new ID for a stone group.
     def get_new_group_id(self) -> GroupId:
