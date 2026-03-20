@@ -17,11 +17,15 @@ game_gui = display.game_dashboard
 analyzer = init_analyzer(display.analysis_dashboard)
 
 
+def forward_state_changes(state: GameState) -> None:
+    display.respond_to_state_change(state)
+
 # This function is the callback supplied to go3_display.py as
 # the `on_click()` value when the display is instantiated.
 def on_move(point: Point) -> None:
     move: Stone = (point, BLUE)
     state: GameState = analyzer.analyze_move(move)
+    forward_state_changes(state)
 
 
 display._on_click = on_move   # (hook up the callback after on_move is defined)

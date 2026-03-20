@@ -13,7 +13,7 @@ import tkinter.ttk as ttk
 from tkinter.scrolledtext import ScrolledText
 from collections.abc import Callable
 
-from go3_board import Point, StoneColor, Stones, RED, WHITE, BLUE, is_valid_gameboard_point
+from go3_board import Point, StoneColor, Stones, GameState, RED, WHITE, BLUE, is_valid_gameboard_point
 
 
 # # # # #     Color constants     # # # # #
@@ -110,12 +110,12 @@ class GameDashboard:
     def __init__(self, frame: tk.Frame) -> None:
         self._widget = frame
         self._widget.config(bg=_DIALOG_COLOR)
-        # tk.Label(self._widget, text="GAME DASHBOARD",
-        #          font=("TkDefaultFont", 14, "bold"),
-        #          bg=_DIALOG_COLOR, fg=_DIALOG_TEXT_COLOR).pack(pady=(8, 2))
         tk.Label(self._widget,
                  text="Game dashboard widget, controlled by go3.py.",
                  bg=_DIALOG_COLOR, fg=_DIALOG_TEXT_COLOR).pack()
+        self._text = ScrolledText(self._widget, wrap="word", relief="flat",
+                                  bg=_DIALOG_COLOR, fg=_DIALOG_TEXT_COLOR)
+        self._text.pack(fill="both", expand=True, padx=8, pady=(0, 8))
 
 # A text area for diagnostic messages, displaying variable values for development and
 # debugging, etc.
@@ -182,6 +182,10 @@ class Go3Display:
 
     def start_loop(self) -> None:
         self._root.mainloop()
+
+    def respond_to_state_change(self, state: GameState) -> None:
+        self._game_dashboard._text.insert(tk.END, "Responding to data received from Analyzer ...\n")
+        self._game_dashboard._text.see(tk.END)
 
     # Clears the board and redraws all stones in the given stones list.
     def draw_stones(self, stones: Stones) -> None:
