@@ -185,7 +185,9 @@ class Go3Display:
 
     def respond_to_state_change(self, state: GameState) -> None:
         self._game_dashboard._text.insert(tk.END, "Responding to data received from Analyzer ...\n")
+        self._game_dashboard._text.insert(tk.END, f"'Next player' value is {state["next_player"]}\n\n")
         self._game_dashboard._text.see(tk.END)
+
 
     # Clears the board and redraws all stones in the given stones list.
     def draw_stones(self, stones: Stones) -> None:

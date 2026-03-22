@@ -7,6 +7,7 @@
 
 
 from typing import TypedDict
+
 from go3_board import Point, StoneColor, Stone, Stones, RED, WHITE, BLUE
 from go3_board import GameState, all_gameboard_points
 from go3_display import AnalysisDashboard
@@ -37,6 +38,14 @@ class Analyzer:
 
 # # # # #     Methods     # # # # #
 
+    def get_initial_game_state(self) -> GameState:
+        state: GameState = {
+            "next_player": RED,
+            "stones": [],
+            "legal_moves": all_gameboard_points()
+        }
+        return state
+
     # Utility to generate a  new ID for a stone group.
     def get_new_group_id(self) -> GroupId:
         group_id = self._next_group_id
@@ -60,9 +69,8 @@ class Analyzer:
         # TEMP #
 
         state: GameState = {"next_player": next, "stones": stones, "legal_moves": legal_moves}
+        self._dashboard.printline(f"next_player (from state) = {state["next_player"].name}")
         return state
 
 
 
-def init_analyzer(dashboard: AnalysisDashboard) -> Analyzer:
-    return Analyzer(dashboard)
