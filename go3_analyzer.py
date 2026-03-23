@@ -9,7 +9,7 @@
 from typing import TypedDict
 
 from go3_board import Point, StoneColor, Stone, Stones, RED, WHITE, BLUE
-from go3_board import GameState, all_gameboard_points
+from go3_board import GameState, all_gameboard_points, adjacent_points, are_adjacent
 from go3_display import AnalysisDashboard
 
 
@@ -58,6 +58,20 @@ class Analyzer:
         next_player = players[(idx + 1) % len(players)]
         self.next_player = next_player
         return next_player
+
+
+    # # Clauded insisted on including this method when we ported adjancency methods
+    # # from go3.rb. Leave it alone until we need it or want to change it.
+    # def find_group(self, start: Point, color: StoneColor) -> list[Point]:
+    #     stone_points = {pt for pt, c in self.stones if c == color}
+    #     visited, queue = {start}, [start]
+    #     while queue:
+    #         p = queue.pop()
+    #         for nb in adjacent_points(p):
+    #             if nb not in visited and nb in stone_points:
+    #                 visited.add(nb)
+    #                 queue.append(nb)
+    #     return list(visited)
 
 
     def analyze_move(self, move: Stone) -> GameState:

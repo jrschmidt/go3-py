@@ -88,3 +88,18 @@ def gameboard_points() -> Iterator[Point]:
 # Returns a set of all points on the gameboard.
 def all_gameboard_points() -> set[Point]:
     return set(gameboard_points())
+
+
+# The 6 adjacent directions on the hexagonal board, in clockwise order:
+# NE, E, SE, SW, W, NW
+HEX_DELTAS: list[tuple[int, int]] = [(0,-1),(1,0),(1,1),(0,1),(-1,0),(-1,-1)]
+
+# Returns all valid points adjacent to point p.
+def adjacent_points(p: Point) -> list[Point]:
+    a, b = p
+    return [(a+da, b+db) for da, db in HEX_DELTAS
+            if is_valid_gameboard_point((a+da, b+db))]
+
+# Returns True if pt1 and pt2 are adjacent on the gameboard.
+def are_adjacent(pt1: Point, pt2: Point) -> bool:
+    return pt2 in adjacent_points(pt1)
