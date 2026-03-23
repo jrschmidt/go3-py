@@ -125,12 +125,21 @@ class GameDashboard:
         _turn_frame.pack(fill="x", padx=2, pady=2)
         _turn_frame.pack_propagate(False)
 
-        # Left: turn icon — square canvas with board color, circle drawn in center
+        # Left: turn icon — gameboard intersection with hexagon, radiating lines, and stone
         self._turn_canvas = tk.Canvas(_turn_frame, width=140, height=140,
-                                      bg=_BOARD_COLOR, highlightthickness=0)
+                                      bg=_GAME_DASH_COLOR, highlightthickness=0)
         self._turn_canvas.pack(side="left")
+        self._turn_canvas.create_polygon(
+            106, 70, 88, 39, 52, 39, 34, 70, 52, 101, 88, 101,
+            fill=_BOARD_COLOR, outline="")
+        self._turn_canvas.create_line(88, 70, 103, 70, fill=_LINE_COLOR, width=3)
+        self._turn_canvas.create_line(79, 54, 87, 41, fill=_LINE_COLOR, width=3)
+        self._turn_canvas.create_line(61, 54, 54, 41, fill=_LINE_COLOR, width=3)
+        self._turn_canvas.create_line(52, 70, 37, 70, fill=_LINE_COLOR, width=3)
+        self._turn_canvas.create_line(61, 86, 54, 99, fill=_LINE_COLOR, width=3)
+        self._turn_canvas.create_line(79, 86, 87, 99, fill=_LINE_COLOR, width=3)
         self._turn_circle = self._turn_canvas.create_oval(
-            20, 20, 120, 120, fill=_STONE_COLOR[RED], outline=_STONE_EDGE_COLOR)
+            53, 53, 87, 87, fill=_STONE_COLOR[RED], outline=_STONE_EDGE_COLOR, width=2)
 
         # Right: two centered text labels
         _label_frame = tk.Frame(_turn_frame, bg=_GAME_DASH_COLOR)
