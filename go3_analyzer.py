@@ -55,7 +55,9 @@ class Analyzer:
     def get_next_player(self) -> StoneColor:
         players = list(StoneColor)
         idx = players.index(self.next_player)
-        return players[(idx + 1) % len(players)]
+        next_player = players[(idx + 1) % len(players)]
+        self.next_player = next_player
+        return next_player
 
 
     def analyze_move(self, move: Stone) -> GameState:
@@ -69,7 +71,6 @@ class Analyzer:
         # TEMP #
 
         state: GameState = {"next_player": next, "stones": stones, "legal_moves": legal_moves}
-        self._dashboard.printline(f"next_player (from state) = {state["next_player"].name}")
         return state
 
 

@@ -33,11 +33,15 @@ _STONE_EDGE_COLOR = "#000000"
 _GHOST = "#aaaaaa"
 
 # Dashboard widget colors
+    # Analysis dashboard
+_MSG_COLOR = "#000000"
+_MSG_TEXT_COLOR = "#ffffff"
+    # Game dashboard
+_GAME_DASH_COLOR = "#999999"
+_GAME_TEXT_COLOR = "#333333"
 _CANVAS_TEXT_COLOR = "#3333cc"
 _DIALOG_COLOR = "#6699aa"
 _DIALOG_TEXT_COLOR = "#ffffff"
-_MSG_COLOR = "#000000"
-_MSG_TEXT_COLOR = "#ffffff"
 
 
 # # # # #     Board geometry constants     # # # # #
@@ -113,9 +117,40 @@ class GameDashboard:
         tk.Label(self._widget,
                  text="Game dashboard widget, controlled by go3.py.",
                  bg=_DIALOG_COLOR, fg=_DIALOG_TEXT_COLOR).pack()
+
+        # Turn indicator (140px tall, between header label and text area)
+        _turn_border = tk.Frame(self._widget, bg=_GAME_TEXT_COLOR)
+        _turn_border.pack(fill="x", padx=8, pady=4)
+        _turn_frame = tk.Frame(_turn_border, height=140, bg=_GAME_DASH_COLOR)
+        _turn_frame.pack(fill="x", padx=2, pady=2)
+        _turn_frame.pack_propagate(False)
+
+        # Left: turn icon — square canvas with board color, circle drawn in center
+        self._turn_canvas = tk.Canvas(_turn_frame, width=140, height=140,
+                                      bg=_BOARD_COLOR, highlightthickness=0)
+        self._turn_canvas.pack(side="left")
+        self._turn_circle = self._turn_canvas.create_oval(
+            20, 20, 120, 120, fill=_STONE_COLOR[RED], outline=_STONE_EDGE_COLOR)
+
+        # Right: two centered text labels
+        _label_frame = tk.Frame(_turn_frame, bg=_GAME_DASH_COLOR)
+        _label_frame.pack(side="left", fill="both", expand=True)
+        _inner = tk.Frame(_label_frame, bg=_GAME_DASH_COLOR)
+        _inner.place(relx=0.5, rely=0.5, anchor="center")
+        tk.Label(_inner, text="YOUR TURN:", font=("TkDefaultFont", 18),
+                 bg=_GAME_DASH_COLOR, fg=_GAME_TEXT_COLOR).pack()
+        self._next_player_label = tk.Label(_inner, text=RED.value,
+                                           font=("TkDefaultFont", 30, "bold"),
+                                           bg=_GAME_DASH_COLOR, fg=_GAME_TEXT_COLOR)
+        self._next_player_label.pack()
+
         self._text = ScrolledText(self._widget, wrap="word", relief="flat",
                                   bg=_DIALOG_COLOR, fg=_DIALOG_TEXT_COLOR)
         self._text.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+
+    def update_next_player_icon(self, color: StoneColor) -> None:
+        self._turn_canvas.itemconfig(self._turn_circle, fill=_STONE_COLOR[color])
+        self._next_player_label.config(text=color.value)
 
 # A text area for diagnostic messages, displaying variable values for development and
 # debugging, etc.
@@ -184,8 +219,8 @@ class Go3Display:
         self._root.mainloop()
 
     def respond_to_state_change(self, state: GameState) -> None:
-        self._game_dashboard._text.insert(tk.END, "Responding to data received from Analyzer ...\n")
-        self._game_dashboard._text.insert(tk.END, f"'Next player' value is {state["next_player"]}\n\n")
+        self._game_dashboard.update_next_player_icon(state["next_player"])
+        self._game_dashboard._text.insert(tk.END, f"'Next player' is {state["next_player"].name}\n\n")
         self._game_dashboard._text.see(tk.END)
 
 
