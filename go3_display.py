@@ -229,6 +229,8 @@ class Go3Display:
 
     def respond_to_state_change(self, state: GameState) -> None:
         self._next_player = state["next_player"]
+        self._legal_moves = state["legal_moves"]
+        self.draw_stones(state["stones"])
         self._game_dashboard.update_next_player_icon(state["next_player"])
         self._game_dashboard._text.insert(tk.END, f"'Next player' is {state["next_player"].name}\n\n")
         self._game_dashboard._text.see(tk.END)
@@ -335,7 +337,7 @@ class Go3Display:
     def _handle_click(self, event) -> None:
         pt = self._get_point(event.x, event.y)
         color = self._next_player
-        if pt is not None and color is not None:
+        if pt is not None and color is not None and pt in self._legal_moves:
             move: Stone = (pt, color)
             self._on_click(move)
 
@@ -362,7 +364,7 @@ class Go3Display:
     def _handle_mouse_move(self, event) -> None:
         self._clear_hover()
         pt = self._get_point(event.x, event.y)
-        if pt is not None:
+        if pt is not None and pt in self._legal_moves:
             cx = self._get_x(pt)
             cy = self._get_y(pt)
             r = 21

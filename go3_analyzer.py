@@ -62,13 +62,15 @@ class Analyzer:
 
     def analyze_move(self, move: Stone) -> GameState:
         self._dashboard.printline(f"You clicked {move[0]} {move[1].name}")
-        next = self.get_next_player()
 
-        # TEMP #
-        # stones[] and legal_moves[] will be changed as required when this method is fully implemented.
         stones = self.stones
         legal_moves = self.legal_moves
-        # TEMP #
+
+        # Increment next_player, save and return revised game state.
+        next = self.get_next_player()
+
+        self.legal_moves.discard(move[0])
+        self.stones.append(move)
 
         state: GameState = {"next_player": next, "stones": stones, "legal_moves": legal_moves}
         return state
