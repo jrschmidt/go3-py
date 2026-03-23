@@ -175,7 +175,7 @@ class AnalysisDashboard:
 class Go3Display:
 
     # Instantiate a Tkinter Canvas widget.
-    def __init__(self, on_click: Callable[[Point], None]) -> None:
+    def __init__(self, on_click: Callable[[Stone], None]) -> None:
         self._on_click = on_click
         self._root = tk.Tk()
         self._root.title("Go3 Board")
@@ -219,6 +219,7 @@ class Go3Display:
         self._root.mainloop()
 
     def respond_to_state_change(self, state: GameState) -> None:
+        self._next_player = state["next_player"]
         self._game_dashboard.update_next_player_icon(state["next_player"])
         self._game_dashboard._text.insert(tk.END, f"'Next player' is {state["next_player"].name}\n\n")
         self._game_dashboard._text.see(tk.END)
@@ -324,8 +325,10 @@ class Go3Display:
     # by go3.py or a test program.
     def _handle_click(self, event) -> None:
         pt = self._get_point(event.x, event.y)
-        if pt is not None:
-            self._on_click(pt)
+        color = self._next_player
+        if pt is not None and color is not None:
+            move: Stone = (pt, color)
+            self._on_click(move)
 
     # Prints a string in the upper right corner of the Canvas widget.
     def _update_coord_label(self, text: str) -> None:

@@ -26,8 +26,8 @@ def forward_state_changes(state: GameState) -> None:
 # 
 # After sending the move data to the analyzer (go3_analyzer.py),
 # the resulting changes are forwarded to the display (go3_display.py).
-def on_move(point: Point) -> None:
-    move: Stone = (point, BLUE)
+def on_move(stone: Stone) -> None:
+    move: Stone = stone
     state: GameState = analyzer.analyze_move(move)
     forward_state_changes(state)
 
