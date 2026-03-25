@@ -15,21 +15,16 @@ from go3_display import AnalysisDashboard
 
 # # # # #     Types     # # # # #
 
-GroupId = int
-
 
 class StoneGroup(TypedDict):
-    id: GroupId
     player: StoneColor
     stones: list[Point]
     clear_points: list[Point]
-    neighbors: list[GroupId]
 
 
 class Analyzer:
     def __init__(self, dashboard: AnalysisDashboard) -> None:
         self.groups: list[StoneGroup] = []
-        self._next_group_id: int = 1
         self._dashboard = dashboard
         self.next_player: StoneColor = RED
         self.stones: Stones = []
@@ -46,12 +41,6 @@ class Analyzer:
         }
         return state
 
-    # Utility to generate a  new ID for a stone group.
-    def get_new_group_id(self) -> GroupId:
-        group_id = self._next_group_id
-        self._next_group_id += 1
-        return group_id
-
     def get_next_player(self) -> StoneColor:
         players = list(StoneColor)
         idx = players.index(self.next_player)
@@ -60,23 +49,45 @@ class Analyzer:
         return next_player
 
 
-    # # Clauded insisted on including this method when we ported adjancency methods
-    # # from go3.rb. Leave it alone until we need it or want to change it.
-    # def find_group(self, start: Point, color: StoneColor) -> list[Point]:
-    #     stone_points = {pt for pt, c in self.stones if c == color}
-    #     visited, queue = {start}, [start]
-    #     while queue:
-    #         p = queue.pop()
-    #         for nb in adjacent_points(p):
-    #             if nb not in visited and nb in stone_points:
-    #                 visited.add(nb)
-    #                 queue.append(nb)
-    #     return list(visited)
+    def rebuild_groups(self) -> list[StoneGroup]:
+        self.groups = []
+        all_occupied = {pt for pt, _ in self.stones}
+
+        for color in StoneColor:
+            color_points = {pt for pt, c in self.stones if c == color}
+            unvisited = set(color_points)
+
+            while unvisited:
+                start = next(iter(unvisited))
+                visited: set[Point] = {start}
+                queue: list[Point] = [start]
+                while queue:
+                    p = queue.pop()
+                    for nb in adjacent_points(p):
+                        if nb not in visited and nb in color_points:
+                            visited.add(nb)
+                            queue.append(nb)
+
+                component = list(visited)
+                clear_pts = list({
+                    nb
+                    for pt in component
+                    for nb in adjacent_points(pt)
+                    if nb not in all_occupied
+                })
+
+                group: StoneGroup = {
+                    'player': color,
+                    'stones': component,
+                    'clear_points': clear_pts,
+                }
+                self.groups.append(group)
+                unvisited -= visited
+
+        return self.groups
 
 
     def analyze_move(self, move: Stone) -> GameState:
-        self._dashboard.printline(f"You clicked {move[0]} {move[1].name}")
-
         stones = self.stones
         legal_moves = self.legal_moves
 
@@ -85,6 +96,33 @@ class Analyzer:
 
         self.legal_moves.discard(move[0])
         self.stones.append(move)
+
+        self.rebuild_groups()
+
+        # Capture any opposing groups with no liberties.
+        played_color = move[1]
+        captured: list[Point] = []
+        for group in self.groups:
+            if group['player'] != played_color and len(group['clear_points']) == 0:
+                captured.extend(group['stones'])
+
+        if captured:
+            for pt in captured:
+                self.stones = [(p, c) for p, c in self.stones if p != pt]
+                self.legal_moves.append(pt)
+            self.rebuild_groups()
+
+        self._dashboard.printline(" ")
+        self._dashboard.printline(f"You clicked {move[0]} {move[1].name}")
+        self._dashboard.printline(f"number of stones on board: {len(self.stones)}")
+        self._dashboard.printline(f"number of legal moves: {len(self.legal_moves)}")
+        for group in self.groups:
+            self._dashboard.printline(
+                f"  {group['player'].name}: "
+                f"{list(group['stones'][0])} "
+                f"{len(group['stones'])} stones, "
+                f"{len(group['clear_points'])} liberties"
+            )
 
         state: GameState = {"next_player": next, "stones": stones, "legal_moves": legal_moves}
         return state
