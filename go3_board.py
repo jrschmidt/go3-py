@@ -44,7 +44,7 @@ Stones = list[Stone]
 class GameState(TypedDict):
     next_player: StoneColor
     stones: Stones
-    legal_moves: list[Point]
+    legal_moves: set[Point]
 
 
 # # # # #     Constants     # # # # #

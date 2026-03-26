@@ -24,11 +24,10 @@ class StoneGroup(TypedDict):
 
 class Analyzer:
     def __init__(self, dashboard: AnalysisDashboard) -> None:
-        self.groups: list[StoneGroup] = []
         self._dashboard = dashboard
         self.next_player: StoneColor = RED
         self.stones: Stones = []
-        self.legal_moves: list[Point] = all_gameboard_points()
+        self.legal_moves: set[Point] = all_gameboard_points()
 
 
 # # # # #     Methods     # # # # #
@@ -49,12 +48,12 @@ class Analyzer:
         return next_player
 
 
-    def rebuild_groups(self) -> list[StoneGroup]:
-        self.groups = []
-        all_occupied = {pt for pt, _ in self.stones}
+    def determine_stone_groups(self, stones: Stones) -> list[StoneGroup]:
+        groups: list[StoneGroup] = []
+        all_occupied = {pt for pt, _ in stones}
 
         for color in StoneColor:
-            color_points = {pt for pt, c in self.stones if c == color}
+            color_points = {pt for pt, c in stones if c == color}
             unvisited = set(color_points)
 
             while unvisited:
@@ -81,42 +80,43 @@ class Analyzer:
                     'stones': component,
                     'clear_points': clear_pts,
                 }
-                self.groups.append(group)
+                groups.append(group)
                 unvisited -= visited
 
-        return self.groups
+        return groups
 
 
     def analyze_move(self, move: Stone) -> GameState:
-        stones = self.stones
-        legal_moves = self.legal_moves
+        stones: Stones = self.stones
+        legal_moves: set[Point] = self.legal_moves
+        next_player: StoneColor = self.get_next_player()
 
-        # Increment next_player, save and return revised game state.
-        next = self.get_next_player()
-
-        self.legal_moves.discard(move[0])
-        self.stones.append(move)
-
-        self.rebuild_groups()
+        stones.append(move)
+        legal_moves.discard(move[0])
+        groups = self.determine_stone_groups(stones)
 
         # Capture any opposing groups with no liberties.
         played_color = move[1]
         captured: list[Point] = []
-        for group in self.groups:
+        for group in groups:
             if group['player'] != played_color and len(group['clear_points']) == 0:
                 captured.extend(group['stones'])
 
         if captured:
             for pt in captured:
-                self.stones = [(p, c) for p, c in self.stones if p != pt]
-                self.legal_moves.append(pt)
-            self.rebuild_groups()
+                stones = [(p, c) for p, c in stones if p != pt]
+                legal_moves.add(pt)
+            groups = self.determine_stone_groups(stones)
+
+        self.next_player = next_player
+        self.stones = stones
+        self.legal_moves = legal_moves
 
         self._dashboard.printline(" ")
         self._dashboard.printline(f"You clicked {move[0]} {move[1].name}")
-        self._dashboard.printline(f"number of stones on board: {len(self.stones)}")
-        self._dashboard.printline(f"number of legal moves: {len(self.legal_moves)}")
-        for group in self.groups:
+        self._dashboard.printline(f"number of stones on board: {len(stones)}")
+        self._dashboard.printline(f"number of legal moves: {len(legal_moves)}")
+        for group in groups:
             self._dashboard.printline(
                 f"  {group['player'].name}: "
                 f"{list(group['stones'][0])} "
@@ -124,7 +124,7 @@ class Analyzer:
                 f"{len(group['clear_points'])} liberties"
             )
 
-        state: GameState = {"next_player": next, "stones": stones, "legal_moves": legal_moves}
+        state: GameState = {"next_player": next_player, "stones": stones, "legal_moves": legal_moves}
         return state
 
 
