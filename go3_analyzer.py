@@ -22,12 +22,16 @@ class StoneGroup(TypedDict):
     clear_points: list[Point]
 
 
+class SingletonEye(TypedDict):
+    point: Point
+    groups: list[StoneGroup]
+
+
 class Analyzer:
     def __init__(self, dashboard: AnalysisDashboard) -> None:
         self._dashboard = dashboard
         self.next_player: StoneColor = RED
         self.stones: Stones = []
-        self.legal_moves: set[Point] = all_gameboard_points()
 
 
 # # # # #     Methods     # # # # #
@@ -86,13 +90,51 @@ class Analyzer:
         return groups
 
 
+    def find_singleton_eyes(self, stones: Stones, groups: list[StoneGroup]) -> list[SingletonEye]:
+        all_occupied = {pt for pt, _ in stones}
+        eye_to_groups: dict[Point, list[StoneGroup]] = {}
+
+        for group in groups:
+            for pt in group['clear_points']:
+                neighbors = adjacent_points(pt)
+                if all(nb in all_occupied for nb in neighbors):
+                    if pt not in eye_to_groups:
+                        eye_to_groups[pt] = []
+                    eye_to_groups[pt].append(group)
+
+        singleton_eyes: list[SingletonEye] = [
+            {'point': pt, 'groups': grps}
+            for pt, grps in eye_to_groups.items()
+        ]
+        return singleton_eyes
+
+
+    def compute_legal_moves(self, stones: Stones, singleton_eyes: list[SingletonEye], next_player: StoneColor) -> set[Point]:
+        all_occupied = {pt for pt, _ in stones}
+        eye_points = {eye['point'] for eye in singleton_eyes}
+
+        legal_moves = all_gameboard_points() - all_occupied - eye_points
+
+        for eye in singleton_eyes:
+            pt = eye['point']
+            for group in eye['groups']:
+                # Opposing group whose only liberty is this point (capturing move).
+                if group['player'] != next_player and len(group['clear_points']) == 1:
+                    legal_moves.add(pt)
+                    break
+                # Own group adjacent to the point that still has another liberty.
+                if group['player'] == next_player and len(group['clear_points']) >= 2:
+                    legal_moves.add(pt)
+                    break
+
+        return legal_moves
+
+
     def analyze_move(self, move: Stone) -> GameState:
         stones: Stones = self.stones
-        legal_moves: set[Point] = self.legal_moves
         next_player: StoneColor = self.get_next_player()
 
         stones.append(move)
-        legal_moves.discard(move[0])
         groups = self.determine_stone_groups(stones)
 
         # Capture any opposing groups with no liberties.
@@ -103,14 +145,14 @@ class Analyzer:
                 captured.extend(group['stones'])
 
         if captured:
-            for pt in captured:
-                stones = [(p, c) for p, c in stones if p != pt]
-                legal_moves.add(pt)
+            stones = [(p, c) for p, c in stones if p not in captured]
             groups = self.determine_stone_groups(stones)
+
+        singleton_eyes = self.find_singleton_eyes(stones, groups)
+        legal_moves = self.compute_legal_moves(stones, singleton_eyes, next_player)
 
         self.next_player = next_player
         self.stones = stones
-        self.legal_moves = legal_moves
 
         self._dashboard.printline(" ")
         self._dashboard.printline(f"You clicked {move[0]} {move[1].name}")
@@ -123,6 +165,10 @@ class Analyzer:
                 f"{len(group['stones'])} stones, "
                 f"{len(group['clear_points'])} liberties"
             )
+        self._dashboard.printline(f"singleton eyes: {len(singleton_eyes)}")
+        for eye in singleton_eyes:
+            group_descs = [f"{g['player'].name}@{list(g['stones'][0])}" for g in eye['groups']]
+            self._dashboard.printline(f"  eye {list(eye['point'])}: {', '.join(group_descs)}")
 
         state: GameState = {"next_player": next_player, "stones": stones, "legal_moves": legal_moves}
         return state
