@@ -6,11 +6,14 @@
 # of Go3. This is the main module.
 
 
+import go3_board
 from go3_board import RED, WHITE, BLUE, gameboard_points, Point, Stone, Stones, GameState
 from go3_display import Go3Display
 from go3_analyzer import Analyzer
 
-display = Go3Display(on_click=None)   # (on_click defined below)
+go3_board.set_side_length(8)   # <-- board size toggle: edit to 6 for the smaller board
+
+display = Go3Display(on_click=None, side_length=go3_board.SIDE_LENGTH)   # (on_click defined below)
 analyzer = Analyzer(display.analysis_dashboard)
 
 

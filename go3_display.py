@@ -13,7 +13,10 @@ import tkinter.ttk as ttk
 from tkinter.scrolledtext import ScrolledText
 from collections.abc import Callable
 
+import math
+
 from go3_board import Point, StoneColor, Stones, GameState, RED, WHITE, BLUE, is_valid_gameboard_point
+import go3_board
 
 
 # # # # #     Color constants     # # # # #
@@ -46,61 +49,27 @@ _DIALOG_TEXT_COLOR = "#ffffff"
 
 # # # # #     Board geometry constants     # # # # #
 
-# Actual pixel coordinates of the corners of the gameboard display.
+# Actual pixel coordinates of the corners of the gameboard display. This is
+# the board's fixed physical boundary — independent of board size, since a
+# denser/sparser point grid is scaled to fit within this same hexagon.
 _HEX_VERTICES = [(157,26),(443,26),(576,270),(443,514),(157,514),(25,270)]
 
-# Star points in traditional Go are thick black dots placed as visual markers.
-# These points are placed on the hexagonal Go3 board as corresponding equivalents.
-_STAR_POINTS: list[Point] = [ [3,3], [6,3], [3,6], [6,6], [9,6], [6,9], [9,9] ]
+# The side length and pixel-spacing constants that the board's original
+# hand-typed geometry (and its _get_x/_get_y formulas) were built around.
+# Used as a baseline to scale point spacing for other side lengths so the
+# grid still fits within the same on-screen hexagon (_HEX_VERTICES above).
+_REFERENCE_SIDE_LENGTH = 6
+_REFERENCE_STEP = 50       # pixels per 'a' step, at _REFERENCE_SIDE_LENGTH
+_REFERENCE_ROW_STEP = 44   # pixels per 'b' step, at _REFERENCE_SIDE_LENGTH
+_CENTER_PX = (300, 270)    # pixel location of the board's center point
 
-# The end points of the 11 horizontal ("W-E") lines on the Go3 gameboard.
-_W_E: list[tuple[Point, Point]] = [
-    ((1, 1),  (6, 1)),
-    ((1, 2),  (7, 2)),
-    ((1, 3),  (8, 3)),
-    ((1, 4),  (9, 4)),
-    ((1, 5),  (10, 5)),
-    ((1, 6),  (11, 6)),
-    ((2, 7),  (11, 7)),
-    ((3, 8),  (11, 8)),
-    ((4, 9),  (11, 9)),
-    ((5, 10), (11, 10)),
-    ((6, 11), (11, 11)),
-]
-
-# The end points of the 11 diagonal "SW-NE" lines that run from the lower left
-# to the upper right of the Go3 gameboard at an angle 60 degrees counterclockwise
-# to horizontal.
-_SW_NE: list[tuple[Point, Point]] = [
-    ((1, 6),  (1, 1)),
-    ((2, 7),  (2, 1)),
-    ((3, 8),  (3, 1)),
-    ((4, 9),  (4, 1)),
-    ((5, 10), (5, 1)),
-    ((6, 11), (6, 1)),
-    ((7, 11), (7, 2)),
-    ((8, 11), (8, 3)),
-    ((9, 11), (9, 4)),
-    ((10, 11),(10, 5)),
-    ((11, 11),(11, 6)),
-]
-
-# The end points of the 11 diagonal "NW-SE" lines that run from the upper left
-# to the lower right of the Go3 gameboard at an angle 60 degrees clockwise to
-# horizontal.
-_NW_SE: list[tuple[Point, Point]] = [
-    ((1, 6),  (6, 11)),
-    ((1, 5),  (7, 11)),
-    ((1, 4),  (8, 11)),
-    ((1, 3),  (9, 11)),
-    ((1, 2),  (10, 11)),
-    ((1, 1),  (11, 11)),
-    ((2, 1),  (11, 10)),
-    ((3, 1),  (11, 9)),
-    ((4, 1),  (11, 8)),
-    ((5, 1),  (11, 7)),
-    ((6, 1),  (11, 6)),
-]
+# How much to shrink/grow point spacing, relative to _REFERENCE_SIDE_LENGTH,
+# so a board with more (or fewer) points per side still spans roughly the
+# same physical hexagon.
+def _spacing_scale(side_length: int) -> float:
+    reference_rows = 2 * _REFERENCE_SIDE_LENGTH - 1
+    rows = 2 * side_length - 1
+    return (reference_rows - 1) / (rows - 1)
 
 
 # # # # #     Dashboard classes     # # # # #
@@ -184,8 +153,9 @@ class AnalysisDashboard:
 class Go3Display:
 
     # Instantiate a Tkinter Canvas widget.
-    def __init__(self, on_click: Callable[[Stone], None]) -> None:
+    def __init__(self, on_click: Callable[[Stone], None], side_length: int = 8) -> None:
         self._on_click = on_click
+        self._side_length = side_length
         self._root = tk.Tk()
         self._root.title("Go3 Board")
         _main_frame = tk.Frame(self._root)
@@ -264,15 +234,34 @@ class Go3Display:
         return True
 
     # Calculate the (x,y) pixel coordinates in the Tkinter Canvas widget of
-    # point (a,b) on the gameboard.
-    def _get_x(self, ab: Point) -> int: return 150 + 50 * ab[0] - 25 * ab[1]
-    def _get_y(self, ab: Point) -> int: return 6 + 44 * ab[1]
+    # point (a,b) on the gameboard. At _REFERENCE_SIDE_LENGTH this is
+    # algebraically identical to the original hand-typed formulas.
+    def _get_x(self, ab: Point) -> int:
+        side_length = self._side_length
+        step = _REFERENCE_STEP * _spacing_scale(side_length)
+        a, b = ab
+        return round(_CENTER_PX[0] + step * (a - side_length) - (step / 2) * (b - side_length))
+
+    def _get_y(self, ab: Point) -> int:
+        side_length = self._side_length
+        row_step = _REFERENCE_ROW_STEP * _spacing_scale(side_length)
+        _, b = ab
+        return round(_CENTER_PX[1] + row_step * (b - side_length))
 
     # Determine which gameboard point (a,b), if any, is closest to pixel (x,y)
-    # on the Tkinter Canvas widget.
+    # on the Tkinter Canvas widget. The algebraic inverse of _get_x/_get_y,
+    # snapping to the nearest point (round-half-up), matching the original
+    # hand-typed formula exactly at _REFERENCE_SIDE_LENGTH.
     def _get_point(self, x: int, y: int) -> Point | None:
-        b = (y - 28) // 44 + 1
-        a = (x - 125 + 25 * b) // 50
+        side_length = self._side_length
+        scale = _spacing_scale(side_length)
+        step = _REFERENCE_STEP * scale
+        row_step = _REFERENCE_ROW_STEP * scale
+        cx_px, cy_px = _CENTER_PX
+        b_exact = side_length + (y - cy_px) / row_step
+        b = math.floor(b_exact + 0.5)
+        a_exact = side_length + (x - cx_px) / step + (b - side_length) / 2
+        a = math.floor(a_exact + 0.5)
         if not is_valid_gameboard_point((a, b)):
             return None
         return (a, b)
@@ -299,16 +288,16 @@ class Go3Display:
 
     # Draw all the lines in all directions necessary to draw the Go3 gameboard.
     def _draw_lines(self) -> None:
-        for beg, end in _W_E:   self._draw_line(beg, end)
-        for beg, end in _SW_NE: self._draw_line(beg, end)
-        for beg, end in _NW_SE: self._draw_line(beg, end)
+        for beg, end in go3_board.board_lines(self._side_length):
+            self._draw_line(beg, end)
 
     # Draw the star points (thick black dots) at the designated locations as an analog
     # to the star points on traditional rectangular gameboards.
     def _draw_star_points(self) -> None:
-        for ab in _STAR_POINTS:
+        r = round(7 * _spacing_scale(self._side_length))
+        for ab in go3_board.star_points(self._side_length):
             cx, cy = self._get_x(ab), self._get_y(ab)
-            self._canvas.create_oval(cx - 7, cy - 7, cx + 7, cy + 7,
+            self._canvas.create_oval(cx - r, cy - r, cx + r, cy + r,
                 fill=_LINE_COLOR, outline=_LINE_COLOR)
 
     # Draw the entire Go3 board (with no stones placed yet).
@@ -324,9 +313,11 @@ class Go3Display:
             raise ValueError(f"Point {ab} is not a valid gameboard position")
         cx, cy = self._get_x(ab), self._get_y(ab)
         fill = _STONE_COLOR[color]
-        self._canvas.create_oval(cx - 17, cy - 17, cx + 17, cy + 17,
+        scale = _spacing_scale(self._side_length)
+        inner_r, outer_r = round(17 * scale), round(19 * scale)
+        self._canvas.create_oval(cx - inner_r, cy - inner_r, cx + inner_r, cy + inner_r,
             fill=fill, outline=_STONE_EDGE_COLOR, width=2)
-        self._canvas.create_oval(cx - 19, cy - 19, cx + 19, cy + 19,
+        self._canvas.create_oval(cx - outer_r, cy - outer_r, cx + outer_r, cy + outer_r,
             fill="", outline=_BOARD_COLOR, width=2)
 
 
@@ -367,7 +358,7 @@ class Go3Display:
         if pt is not None and pt in self._legal_moves:
             cx = self._get_x(pt)
             cy = self._get_y(pt)
-            r = 21
+            r = round(21 * _spacing_scale(self._side_length))
             self._hover_circle = self._canvas.create_oval(
                 cx - r, cy - r, cx + r, cy + r,
                 outline=_GHOST, fill="", width=2
